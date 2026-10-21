@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Keuangan Workshop SPI 2026</title>
+<style>
+:root{--bg:#f6f6f4;--card:#fff;--ink:#1d2227;--mut:#6a727b;--line:#e1e3e5;--g:#1f7a4d;--r:#b3302a;--a:#a86b00;--b:#2c4a6e}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,"Segoe UI",sans-serif}
+header{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--line);background:var(--card)}
+h1{font-size:19px;margin:0}h2{font-size:16px;margin:28px 0 8px}small,.mut{color:var(--mut)}
+nav{display:flex;gap:2px;overflow-x:auto;padding:0 12px;background:var(--card);border-bottom:1px solid var(--line)}
+nav button{border:0;background:none;padding:11px 14px;font:inherit;color:var(--mut);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap}
+nav button.on{color:var(--ink);border-color:var(--ink);font-weight:600}
+main{max-width:1100px;margin:0 auto;padding:16px 20px 60px}
+.btn{font:inherit;padding:6px 12px;border:1px solid #b9bec3;background:var(--card);border-radius:4px;cursor:pointer}
+.btn.p{background:var(--ink);color:#fff;border-color:var(--ink)}.btn.d{color:var(--r)}.btn.s{padding:2px 8px;font-size:13px}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--b);outline-offset:1px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.card{background:var(--card);border:1px solid var(--line);padding:12px 14px;border-radius:4px}
+.card .v{font-size:21px;font-weight:600;font-variant-numeric:tabular-nums}.card .l{font-size:13px;color:var(--mut)}
+.pos{color:var(--g)}.neg{color:var(--r)}.pen{color:var(--a)}
+table{width:100%;border-collapse:collapse;background:var(--card);font-size:14px}
+th,td{padding:7px 9px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{font-weight:600;color:var(--mut);font-size:13px;background:#fafafa}td.n,th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.wrap{overflow-x:auto;border:1px solid var(--line);border-radius:4px}
+.badge{font-size:12px;padding:1px 7px;border-radius:9px;border:1px solid currentColor;white-space:nowrap}
+.bar{display:flex;height:12px;background:#e9eaec;border-radius:2px;overflow:hidden}.bar i{display:block}
+.filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-bottom:10px}
+input,select,textarea{font:inherit;padding:6px 8px;border:1px solid #b9bec3;border-radius:4px;width:100%;background:#fff}
+label{display:block;font-size:13px;color:var(--mut)}
+dialog{border:1px solid var(--line);border-radius:6px;padding:18px;width:min(640px,94vw);max-height:92vh}
+dialog::backdrop{background:#0006}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.grid .full{grid-column:1/-1}
+.warn{background:#fff7e6;border:1px solid #ecd49a;padding:8px 12px;border-radius:4px;font-size:13.5px}
+.err{color:var(--r);font-size:13.5px;min-height:20px}.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.hide{display:none}details{margin:4px 0}
+@media(max-width:560px){.grid{grid-template-columns:1fr}}
+@media print{header .row,nav,.btn,.noprint,.filters{display:none!important}body{background:#fff}.card,table{break-inside:avoid}}
+</style></head><body>
+<header><div><h1>Keuangan Workshop SPI 2026</h1><small id="saved"></small></div>
+<div class="row"><button class="btn p" id="addBtn">+ Tambah transaksi</button><button class="btn" id="saveBtn">Simpan / Backup data</button></div></header>
+<nav id="tabs"></nav><main id="app"></main>
+<dialog id="dlg"><form id="f" method="dialog" novalidate>
+<h2 id="ft" style="margin-top:0">Transaksi</h2><div class="grid">
+<div><label for="fdate">Tanggal</label><input type="date" id="fdate" required></div>
+<div><label for="ftype">Jenis transaksi</label><select id="ftype"></select></div>
+<div class="full"><label for="fdesc">Deskripsi</label><input id="fdesc" maxlength="200" required></div>
+<div><label for="famt">Jumlah (Rp)</label><input id="famt" inputmode="numeric" placeholder="0" required></div>
+<div><label for="fstat">Status pembayaran</label><select id="fstat"></select></div>
+<div id="wpaid" class="hide"><label for="fpaid">Sudah dibayar (Rp)</label><input id="fpaid" inputmode="numeric"></div>
+<div><label for="fpic">PIC / penerima</label><input id="fpic" maxlength="80" list="pics"><datalist id="pics"></datalist></div>
+<div><label for="fcat">Kategori</label><input id="fcat" maxlength="60" list="cats"><datalist id="cats"></datalist></div>
+<div><label for="fmeth">Metode</label><select id="fmeth"><option value="bank">Transfer bank</option><option value="cash">Tunai</option><option value="other">Lainnya</option></select></div>
+<div><label for="fref">No. referensi (opsional)</label><input id="fref" maxlength="60"></div>
+<div id="wadv" class="hide"><label for="fadv">Tautkan ke dana PIC</label><select id="fadv"></select></div>
+<div id="wclm" class="hide"><label for="fclm">Tautkan ke klaim reimburse</label><select id="fclm"></select></div>
+<div id="wdue" class="hide"><label for="fdue">Jatuh tempo</label><input type="date" id="fdue"></div>
+<div id="wpri" class="hide"><label for="fpri">Prioritas</label><select id="fpri"><option value="">-</option><option>Tinggi</option><option>Sedang</option><option>Rendah</option></select></div>
+<div><label for="fatt">Lampiran / nama file kuitansi</label><input id="fatt" maxlength="120"></div>
+<div class="full"><label for="fnote">Catatan</label><textarea id="fnote" rows="2" maxlength="500"></textarea></div></div>
+<p class="err" id="ferr" role="alert"></p>
+<div class="row" style="justify-content:flex-end"><button type="button" class="btn" id="fcancel">Batal</button><button type="submit" class="btn p">Simpan</button></div></form></dialog>
+<dialog id="vdlg"><div id="vbody"></div><div class="row" style="justify-content:flex-end;margin-top:10px"><button class="btn" onclick="vdlg.close()">Tutup</button></div></dialog>
+<script>
+'use strict';
+const KEY='spi2026.finance.v2',$=id=>document.getElementById(id);
+const T={fund_in:['Dana masuk',1],expense:['Pembayaran langsung',-1],pic_transfer:['Transfer ke PIC',-1],reimb_claim:['Klaim reimburse',0],reimb_paid:['Reimburse dibayar',-1],pic_expense:['Laporan biaya PIC',0],pic_return:['Pengembalian dana PIC',1],other_in:['Kas masuk lain',1],other_out:['Kas keluar lain',-1]};
+const SL={Planned:'Rencana','Awaiting Payment':'Menunggu pembayaran',Paid:'Lunas',Transferred:'Ditransfer','Partially Paid':'Dibayar sebagian',Cancelled:'Batal'};
+const ALL=['Planned','Awaiting Payment','Paid','Transferred','Partially Paid','Cancelled'];
+const ST={expense:ALL.filter(s=>s!=='Transferred'),reimb_claim:['Planned','Awaiting Payment','Cancelled'],reimb_paid:['Paid','Cancelled'],pic_transfer:['Planned','Transferred','Cancelled']};
+const stFor=t=>ST[t]||['Planned','Paid','Cancelled'];
+const SC={Paid:'pos',Transferred:'pos','Awaiting Payment':'pen','Partially Paid':'pen',Planned:'mut',Cancelled:'neg'};
+const fmt=n=>(n<0?'-':'')+'Rp'+Math.abs(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+const today=()=>{const d=new Date();return new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10)};
+const uid=()=>'t'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const h=(t,a,...k)=>{const e=document.createElement(t);for(const x in a||{}){if(x==='class')e.className=a[x];else if(x.startsWith('on'))e.addEventListener(x.slice(2),a[x]);else e.setAttribute(x,a[x])}for(const c of k.flat())if(c!=null&&c!==false)e.append(c.nodeType?c:document.createTextNode(c));return e};
+const intOf=s=>{s=String(s).trim();return /^\d+$/.test(s.replace(/[.\s]/g,''))&&s?parseInt(s.replace(/[.\s]/g,''),10):NaN};
+
+function seed(){return{tx:[],audit:[{ts:Date.now(),a:'Inisialisasi',id:'',d:'Data awal kosong; saldo awal Rp0.'}],saved:Date.now()}}
+function valid(o){if(!o||!Array.isArray(o.tx))return 'Format tidak dikenali: daftar transaksi tidak ada.';const ids=new Set();
+for(const t of o.tx){if(!t||typeof t.id!=='string'||!t.id||ids.has(t.id))return 'ID transaksi kosong atau ganda.';ids.add(t.id);
+if(!T[t.type])return 'Jenis tidak valid: '+t.id;if(!ALL.includes(t.status))return 'Status tidak valid: '+t.id;
+if(!Number.isSafeInteger(t.amount)||t.amount<=0)return 'Jumlah tidak valid: '+t.id;if(!/^\d{4}-\d{2}-\d{2}$/.test(t.date||''))return 'Tanggal tidak valid: '+t.id;if(typeof t.desc!=='string'||!t.desc.trim())return 'Deskripsi kosong: '+t.id}
+return ''}
+function norm(o){o.tx.forEach(t=>{for(const k of['category','pic','method','ref','notes','attach','advanceId','claimId','due','priority'])if(typeof t[k]!=='string')t[k]='';t.paidAmount=Number.isSafeInteger(t.paidAmount)?t.paidAmount:0});o.audit=Array.isArray(o.audit)?o.audit:[];o.saved=o.saved||Date.now();return o}
+let db,memOnly=false;
+function load(){try{const r=localStorage.getItem(KEY);if(r){const o=JSON.parse(r);if(!valid(o))return norm(o)}}catch(e){memOnly=true}const o=seed();try{localStorage.setItem(KEY,JSON.stringify(o))}catch(e){memOnly=true}return o}
+function save(){db.saved=Date.now();try{localStorage.setItem(KEY,JSON.stringify(db));memOnly=false}catch(e){memOnly=true}stamp()}
+function stamp(){$('saved').textContent=memOnly?'Peringatan: penyimpanan browser tidak tersedia. Unduh backup sekarang.':'Terakhir disimpan: '+new Date(db.saved).toLocaleString('id-ID')}
+const log=(a,id,d)=>{db.audit.push({ts:Date.now(),a,id,d});if(db.audit.length>500)db.audit.shift()};
+const paid=t=>t.status==='Cancelled'?0:(t.status==='Paid'||t.status==='Transferred')?t.amount:t.status==='Partially Paid'?Math.min(t.paidAmount||0,t.amount):0;
+
+function calc(){const c={opening:0,in2:0,cash:0,expPaid:0,otherOut:0,picT:0,picE:0,picR:0,outst:0,reimb:0,planned:0,claims:{},pics:{}};
+const P=n=>c.pics[n]=c.pics[n]||{t:0,e:0,r:0,tx:[]};
+for(const t of db.tx){const p=paid(t),k=T[t.type][1];if(k)c.cash+=k*p;
+if(t.type==='fund_in'){c.in2+=p;if(t.category==='Dana Awal')c.opening+=p}
+if(t.type==='other_in')c.in2+=p;if(t.type==='other_out')c.otherOut+=p;
+if(['expense','reimb_paid','pic_expense'].includes(t.type))c.expPaid+=p;
+if(t.type==='expense'&&['Awaiting Payment','Partially Paid'].includes(t.status))c.outst+=t.amount-p;
+if(t.type==='expense'&&t.status==='Planned')c.planned+=t.amount;
+if(t.type==='pic_transfer'){c.picT+=p;P(t.pic||'(tanpa nama)').t+=p}
+if(t.type==='pic_expense'){c.picE+=p;P(t.pic||'(tanpa nama)').e+=p}
+if(t.type==='pic_return'){c.picR+=p;P(t.pic||'(tanpa nama)').r+=p}
+if(['pic_transfer','pic_expense','pic_return'].includes(t.type))P(t.pic||'(tanpa nama)').tx.push(t)}
+for(const t of db.tx)if(t.type==='reimb_claim'){const pd=db.tx.filter(x=>x.type==='reimb_paid'&&x.claimId===t.id).reduce((s,x)=>s+paid(x),0);
+const ap=t.status==='Awaiting Payment',out=ap?Math.max(0,t.amount-pd):0;c.claims[t.id]={pd,out,label:t.status==='Cancelled'?'Ditolak / batal':t.status==='Planned'?'Diajukan':pd>=t.amount?'Lunas':pd>0?'Dibayar sebagian':'Disetujui, menunggu bayar'};c.reimb+=out}
+c.held=c.picT-c.picE-c.picR;c.avail=c.cash-c.outst-c.reimb;return c}
+
+let tab='dash',flt={q:'',from:'',to:'',cat:'',type:'',pic:'',st:'',sort:'date-desc'};
+const TABS=[['dash','Ringkasan'],['led','Transaksi'],['pic','Dana PIC'],['rb','Reimburse'],['due','Pembayaran mendatang'],['rep','Laporan & data']];
+function nav(){const n=$('tabs');n.replaceChildren(...TABS.map(([k,l])=>h('button',{class:tab===k?'on':'',onclick:()=>{tab=k;render()}},l)))}
+const badge=s=>h('span',{class:'badge '+SC[s]},SL[s]);
+const money=(n,cls)=>h('td',{class:'n '+(cls||'')},fmt(n));
+function tbl(heads,rows,nc=[]){if(!rows.length)return h('p',{class:'mut'},'Belum ada data.');return h('div',{class:'wrap'},h('table',null,h('thead',null,h('tr',null,heads.map((x,i)=>h('th',{class:nc.includes(i)?'n':''},x)))),h('tbody',null,rows)))}
+function acts(t){return h('td',null,h('div',{class:'row'},h('button',{class:'btn s',onclick:()=>view(t.id)},'Lihat'),h('button',{class:'btn s',onclick:()=>openForm(t.id)},'Ubah'),h('button',{class:'btn s d',onclick:()=>del(t.id)},'Hapus')))}
+function card(l,v,cls,sub){return h('div',{class:'card'},h('div',{class:'l'},l),h('div',{class:'v '+(cls||'')},fmt(v)),sub&&h('small',null,sub))}
+
+function render(){nav();const a=$('app');a.replaceChildren();({dash,led,pic,rb,due,rep})[tab](a);stamp()}
+function dash(a){const c=calc();
+a.append(h('div',{class:'cards'},card('Dana awal',c.opening,'','Koperasi dan sumber awal'),card('Saldo kas aktual',c.cash,'pos','Uang yang benar-benar ada'),card('Beban terbayar',c.expPaid,'neg','Tanpa transfer PIC yang belum dilaporkan'),card('Pembayaran tertunda',c.outst,'pen','Kewajiban pasti, belum lunas'),card('Reimburse menunggu bayar',c.reimb,'pen'),card('Dana dipegang PIC',c.held,c.held<0?'neg':'pen','Belum dipertanggungjawabkan'),card('Saldo tersedia',c.avail,c.avail<0?'neg':'pos','Kas dikurangi kewajiban')));
+const tot=Math.max(c.in2,1),pc=x=>Math.max(0,Math.min(100,x/tot*100));
+a.append(h('h2',null,'Pemakaian dana'),h('div',{class:'bar',role:'img','aria-label':'Pemakaian dana'},h('i',{style:`width:${pc(c.expPaid+c.otherOut)}%;background:var(--r)`}),h('i',{style:`width:${pc(c.held)}%;background:var(--a)`})),
+h('small',null,`Merah: beban terbayar ${fmt(c.expPaid+c.otherOut)}. Kuning: dana di PIC ${fmt(c.held)}. Abu-abu: sisa kas ${fmt(c.cash)} dari total masuk ${fmt(c.in2)}.`));
+a.append(h('h2',null,'Rekonsiliasi'),tbl(['Komponen','Jumlah'],[['Total dana masuk (di luar pengembalian PIC)',c.in2,''],['− Beban terbayar (langsung, reimburse, laporan PIC)',-c.expPaid,'neg'],['− Kas keluar lain',-c.otherOut,'neg'],['− Dana masih di PIC',-c.held,'pen'],['= Saldo kas aktual',c.cash,'pos'],['− Kewajiban belum dibayar',-c.outst,'pen'],['− Reimburse menunggu bayar',-c.reimb,'pen'],['= Saldo tersedia',c.avail,c.avail<0?'neg':'pos']].map(r=>h('tr',null,h('td',null,r[0]),money(r[1],r[2]))),[1]));
+a.append(h('small',null,'Estimasi rencana yang belum menjadi kewajiban: '+fmt(c.planned)+' (tidak mengurangi saldo).'));
+a.append(h('h2',null,'Transaksi terbaru'),tbl(['Tanggal','Deskripsi','Jenis','Status','Jumlah'],sorted(db.tx).slice(0,6).map(t=>h('tr',null,h('td',null,t.date),h('td',null,t.desc),h('td',null,T[t.type][0]),h('td',null,badge(t.status)),money(t.amount))),[4]))}
+const sorted=l=>[...l].sort((x,y)=>y.date.localeCompare(x.date)||y.created-x.created);
+function led(a){const f=flt,cats=[...new Set(db.tx.map(t=>t.category).filter(Boolean))].sort(),pics=[...new Set(db.tx.map(t=>t.pic).filter(Boolean))].sort();
+const inp=(k,ty,ph)=>h('input',{type:ty,placeholder:ph||'','aria-label':ph||k,value:f[k],onchange:e=>{f[k]=e.target.value;render()}});
+const sel=(k,opts,lab)=>{const s=h('select',{'aria-label':lab,onchange:e=>{f[k]=e.target.value;render()}},h('option',{value:''},lab),...opts.map(o=>h('option',{value:o[0]},o[1])));s.value=f[k];return s};
+const so=h('select',{'aria-label':'Urutkan',onchange:e=>{f.sort=e.target.value;render()}},...[['date-desc','Tanggal: terbaru'],['date-asc','Tanggal: terlama'],['amt-desc','Jumlah: terbesar'],['amt-asc','Jumlah: terkecil'],['desc-asc','Deskripsi: A-Z']].map(o=>h('option',{value:o[0]},o[1])));so.value=f.sort;
+a.append(h('div',{class:'filters'},inp('q','search','Cari...'),inp('from','date','Dari tanggal'),inp('to','date','Sampai tanggal'),sel('cat',cats.map(x=>[x,x]),'Semua kategori'),sel('type',Object.entries(T).map(([k,v])=>[k,v[0]]),'Semua jenis'),sel('pic',pics.map(x=>[x,x]),'Semua PIC'),sel('st',ALL.map(s=>[s,SL[s]]),'Semua status'),so));
+let l=db.tx.filter(t=>(!f.q||(t.desc+t.pic+t.ref+t.notes).toLowerCase().includes(f.q.toLowerCase()))&&(!f.from||t.date>=f.from)&&(!f.to||t.date<=f.to)&&(!f.cat||t.category===f.cat)&&(!f.type||t.type===f.type)&&(!f.pic||t.pic===f.pic)&&(!f.st||t.status===f.st));
+const [k,d]=f.sort.split('-'),m=d==='asc'?1:-1;l=sorted(l);if(k==='amt')l.sort((x,y)=>m*(x.amount-y.amount));if(k==='desc')l.sort((x,y)=>m*x.desc.localeCompare(y.desc));if(f.sort==='date-asc')l.reverse();
+a.append(tbl(['Tanggal','Deskripsi','Kategori','PIC / penerima','Jenis','Status','Jumlah','Aksi'],l.map(t=>h('tr',null,h('td',null,t.date),h('td',null,t.desc),h('td',null,t.category),h('td',null,t.pic),h('td',null,T[t.type][0]),h('td',null,badge(t.status)),money(t.amount,T[t.type][1]>0?'pos':T[t.type][1]<0?'neg':''),acts(t))),[6]),h('small',null,l.length+' dari '+db.tx.length+' transaksi. Pembatalan tidak memengaruhi saldo.'))}
+function pic(a){const c=calc();const names=Object.keys(c.pics);a.append(h('p',{class:'mut'},'Sisa dana PIC = total transfer − biaya yang dilaporkan dan diterima − dana yang dikembalikan.'));
+if(!names.length)return a.append(h('p',{class:'mut'},'Belum ada transfer ke PIC.'));
+a.append(tbl(['PIC','Ditransfer','Biaya dilaporkan','Dikembalikan','Sisa belum dipertanggungjawabkan','Catatan'],names.map(n=>{const p=c.pics[n],r=p.t-p.e-p.r;return h('tr',null,h('td',null,n),money(p.t),money(p.e),money(p.r),money(r,r<0?'neg':r>0?'pen':'pos'),h('td',null,r<0?h('span',{class:'neg'},'Selisih: laporan melebihi dana PIC. '):'',h('details',null,h('summary',null,p.tx.length+' transaksi'),...sorted(p.tx).map(t=>h('div',null,`${t.date} ${T[t.type][0]}: ${t.desc} (${fmt(t.amount)}, ${SL[t.status]})${t.notes?' - '+t.notes:''}`)))))}),[1,2,3,4]));
+a.append(h('div',{class:'row'},h('button',{class:'btn',onclick:()=>openForm(null,'pic_expense')},'+ Laporan biaya PIC'),h('button',{class:'btn',onclick:()=>openForm(null,'pic_return')},'+ Pengembalian dana'),h('button',{class:'btn',onclick:()=>openForm(null,'pic_transfer')},'+ Transfer ke PIC')))}
+function rb(a){const c=calc(),cl=db.tx.filter(t=>t.type==='reimb_claim');
+a.append(h('div',{class:'row'},h('button',{class:'btn p',onclick:()=>openForm(null,'reimb_claim')},'+ Klaim reimburse')),h('p',{class:'mut'},'Klaim berstatus "Menunggu pembayaran" dianggap disetujui. Pembayaran dicatat sebagai transaksi terpisah yang tertaut ke klaim.'));
+a.append(tbl(['Tanggal','Pengklaim','Deskripsi','Status','Jumlah klaim','Sudah dibayar','Sisa','Aksi'],sorted(cl).map(t=>{const k=c.claims[t.id];return h('tr',null,h('td',null,t.date),h('td',null,t.pic),h('td',null,t.desc),h('td',null,k.label),money(t.amount),money(k.pd,'pos'),money(k.out,k.out?'pen':''),h('td',null,h('div',{class:'row'},k.out>0&&h('button',{class:'btn s',onclick:()=>payClaim(t.id)},'Bayar'),h('button',{class:'btn s',onclick:()=>openForm(t.id)},'Ubah'),h('button',{class:'btn s d',onclick:()=>del(t.id)},'Hapus'))))}),[4,5,6]))}
+function due(a){const l=db.tx.filter(t=>t.type==='expense'&&['Planned','Awaiting Payment','Partially Paid'].includes(t.status)).sort((x,y)=>(x.due||'9').localeCompare(y.due||'9'));
+a.append(h('div',{class:'row'},h('button',{class:'btn p',onclick:()=>openForm(null,'expense','Awaiting Payment')},'+ Kewajiban / rencana')),h('p',{class:'mut'},'Rencana (estimasi) tidak mengurangi kas. Hanya "Menunggu pembayaran" dan "Dibayar sebagian" dihitung sebagai kewajiban.'));
+a.append(tbl(['Deskripsi','Penerima','Jatuh tempo','Prioritas','Status','Total','Sudah dibayar','Sisa','Aksi'],l.map(t=>{const p=paid(t);return h('tr',null,h('td',null,t.desc),h('td',null,t.pic),h('td',null,t.due||'-'),h('td',null,t.priority||'-'),h('td',null,badge(t.status),t.status==='Planned'?' estimasi':' pasti'),money(t.amount),money(p),money(t.amount-p,'pen'),h('td',null,h('div',{class:'row'},t.status!=='Planned'&&h('button',{class:'btn s',onclick:()=>payDue(t.id)},'Catat bayar'),t.status==='Planned'&&h('button',{class:'btn s',onclick:()=>confirmDue(t.id)},'Jadikan pasti'),h('button',{class:'btn s',onclick:()=>openForm(t.id)},'Ubah'))))}),[5,6,7]))}
+function rep(a){a.append(h('div',{class:'warn'},'Data tersimpan di browser dan profil perangkat ini. Data bisa hilang jika data browser dihapus dan tidak tersinkron antar perangkat. Unduh backup JSON secara rutin.'));
+const imp=h('input',{type:'file',accept:'application/json',class:'hide',onchange:importJSON});
+a.append(h('h2',null,'Data'),h('div',{class:'row noprint'},h('button',{class:'btn p',onclick:backup},'Backup JSON'),h('button',{class:'btn',onclick:()=>imp.click()},'Impor JSON'),imp,h('button',{class:'btn',onclick:csv},'Ekspor CSV'),h('button',{class:'btn',onclick:()=>print()},'Cetak ringkasan')));
+a.append(h('h2',null,'Ringkasan untuk cetak'));dash(a);
+a.append(h('h2',null,'Jejak audit (50 terakhir)'),tbl(['Waktu','Aksi','Rincian'],[...db.audit].reverse().slice(0,50).map(x=>h('tr',null,h('td',null,new Date(x.ts).toLocaleString('id-ID')),h('td',null,x.a),h('td',null,x.d)))))}
+
+function view(id){const t=db.tx.find(x=>x.id===id),b=$('vbody');b.replaceChildren(h('h2',{style:'margin-top:0'},t.desc),
+...[['Tanggal',t.date],['Jenis',T[t.type][0]],['Jumlah',fmt(t.amount)],['Status',SL[t.status]],['Dibayar',fmt(paid(t))],['PIC / penerima',t.pic],['Kategori',t.category],['Metode',t.method],['Referensi',t.ref],['Lampiran',t.attach],['Jatuh tempo',t.due],['Catatan',t.notes]].filter(r=>r[1]).map(r=>h('div',null,h('small',null,r[0]+': '),r[1])),
+h('h2',null,'Riwayat perubahan'),...db.audit.filter(x=>x.id===id).map(x=>h('div',null,new Date(x.ts).toLocaleString('id-ID')+' - '+x.a+': '+x.d)));$('vdlg').showModal()}
+function del(id){const t=db.tx.find(x=>x.id===id);if(!confirm(`Hapus "${t.desc}" (${fmt(t.amount)})? Saldo akan dihitung ulang dan tindakan ini dicatat di jejak audit.`))return;
+if(db.tx.some(x=>x.claimId===id||x.advanceId===id)&&!confirm('Transaksi ini tertaut ke catatan lain. Tautan akan terputus. Lanjutkan?'))return;
+db.tx.forEach(x=>{if(x.claimId===id)x.claimId='';if(x.advanceId===id)x.advanceId=''});db.tx=db.tx.filter(x=>x.id!==id);log('Hapus',id,`${t.desc}, ${fmt(t.amount)}, ${SL[t.status]}`);save();render()}
+function payClaim(id){const t=db.tx.find(x=>x.id===id),k=calc().claims[id],v=prompt(`Jumlah pembayaran (Rp). Sisa: ${fmt(k.out)}`,k.out);if(v===null)return;const n=intOf(v);
+if(!(n>0)||n>k.out)return alert('Jumlah harus bilangan positif dan tidak melebihi sisa klaim.');
+const p={id:uid(),date:today(),desc:'Pembayaran reimburse: '+t.desc,amount:n,type:'reimb_paid',status:'Paid',category:t.category||'Reimbursement',pic:t.pic,method:'bank',ref:'',notes:'',attach:'',paidAmount:0,advanceId:'',claimId:id,due:'',priority:'',created:Date.now()};
+db.tx.push(p);log('Bayar reimburse',p.id,`${fmt(n)} untuk klaim ${t.desc}`);save();render()}
+function payDue(id){const t=db.tx.find(x=>x.id===id),r=t.amount-paid(t),v=prompt(`Jumlah dibayar sekarang (Rp). Sisa: ${fmt(r)}`,r);if(v===null)return;const n=intOf(v);
+if(!(n>0)||n>r)return alert('Jumlah harus bilangan positif dan tidak melebihi sisa.');
+t.paidAmount=paid(t)+n;t.status=t.paidAmount>=t.amount?'Paid':'Partially Paid';log('Bayar kewajiban',id,`${fmt(n)}; total dibayar ${fmt(t.paidAmount)}`);save();render()}
+function confirmDue(id){const t=db.tx.find(x=>x.id===id);if(!confirm(`Jadikan "${t.desc}" kewajiban pasti? Kas belum berkurang sampai dibayar.`))return;t.status='Awaiting Payment';log('Ubah status',id,'Rencana menjadi Menunggu pembayaran');save();render()}
+
+let editing=null;const F=id=>$(id);
+function fillSel(s,opts,v){s.replaceChildren(...opts.map(o=>h('option',{value:o[0]},o[1])));s.value=v}
+function sync(){const ty=F('ftype').value,cur=F('fstat').value;fillSel(F('fstat'),stFor(ty).map(s=>[s,SL[s]]),stFor(ty).includes(cur)?cur:stFor(ty)[0]);
+const v=(w,on)=>F(w).classList.toggle('hide',!on);v('wpaid',F('fstat').value==='Partially Paid');v('wadv',ty==='pic_expense');v('wclm',ty==='reimb_paid');v('wdue',ty==='expense'||ty==='reimb_claim');v('wpri',ty==='expense'||ty==='reimb_claim')}
+function openForm(id,type,status){const t=id?db.tx.find(x=>x.id===id):null;editing=t;F('ft').textContent=t?'Ubah transaksi':'Tambah transaksi';F('ferr').textContent='';
+fillSel(F('ftype'),Object.entries(T).map(([k,v])=>[k,v[0]]),t?t.type:type||'expense');F('fstat').replaceChildren();
+F('fdate').value=t?t.date:today();F('fdesc').value=t?t.desc:'';F('famt').value=t?t.amount:'';F('fpaid').value=t&&t.paidAmount||'';F('fpic').value=t?t.pic:'';F('fcat').value=t?t.category:'';F('fmeth').value=t?t.method:'bank';F('fref').value=t?t.ref:'';F('fdue').value=t?t.due:'';F('fpri').value=t?t.priority:'';F('fatt').value=t?t.attach:'';F('fnote').value=t?t.notes:'';
+$('pics').replaceChildren(...[...new Set(db.tx.map(x=>x.pic).filter(Boolean))].map(x=>h('option',{value:x})));$('cats').replaceChildren(...[...new Set(db.tx.map(x=>x.category).filter(Boolean))].map(x=>h('option',{value:x})));
+fillSel(F('fadv'),[['','- tidak ditautkan -'],...db.tx.filter(x=>x.type==='pic_transfer'&&x.status!=='Cancelled').map(x=>[x.id,`${x.pic} ${fmt(x.amount)} (${x.date})`])],t?t.advanceId:'');
+fillSel(F('fclm'),[['','- tanpa klaim -'],...db.tx.filter(x=>x.type==='reimb_claim'&&x.status!=='Cancelled').map(x=>[x.id,`${x.pic} ${x.desc} ${fmt(x.amount)}`])],t?t.claimId:'');
+sync();if(t)F('fstat').value=t.status;else if(status&&stFor(F('ftype').value).includes(status))F('fstat').value=status;sync();$('dlg').showModal()}
+F('ftype').onchange=sync;F('fstat').onchange=sync;F('fcancel').onclick=()=>$('dlg').close();$('addBtn').onclick=()=>openForm();
+$('f').addEventListener('submit',e=>{e.preventDefault();const er=m=>{F('ferr').textContent=m},ty=F('ftype').value,st=F('fstat').value,amt=intOf(F('famt').value);
+const desc=F('fdesc').value.trim(),date=F('fdate').value,ref=F('fref').value.trim();
+if(!date||isNaN(new Date(date)))return er('Tanggal wajib diisi.');if(!desc)return er('Deskripsi wajib diisi.');if(!(amt>0)||!Number.isSafeInteger(amt))return er('Jumlah harus bilangan bulat positif (Rupiah).');
+if(['pic_transfer','pic_expense','pic_return','reimb_claim'].includes(ty)&&!F('fpic').value.trim())return er('Nama PIC / pengklaim wajib diisi untuk jenis ini.');
+let pa=0;if(st==='Partially Paid'){pa=intOf(F('fpaid').value);if(!(pa>0)||pa>=amt)return er('Jumlah yang sudah dibayar harus lebih dari 0 dan kurang dari total.')}
+if(ref&&db.tx.some(x=>x.ref===ref&&x.type===ty&&x!==editing&&x.status!=='Cancelled'&&['reimb_paid','pic_expense','expense'].includes(ty)))return er('Nomor referensi sudah dipakai pada transaksi sejenis (cegah pembayaran ganda).');
+const clm=ty==='reimb_paid'?F('fclm').value:'';if(clm){const c=db.tx.find(x=>x.id===clm),o=db.tx.filter(x=>x.type==='reimb_paid'&&x.claimId===clm&&x!==editing).reduce((s,x)=>s+paid(x),0);
+if(st!=='Cancelled'&&o+amt>c.amount)return er(`Pembayaran melebihi klaim. Sisa klaim: ${fmt(c.amount-o)}.`)}
+const n={date,desc,amount:amt,type:ty,status:st,category:F('fcat').value.trim(),pic:F('fpic').value.trim(),method:F('fmeth').value,ref,notes:F('fnote').value.trim(),attach:F('fatt').value.trim(),paidAmount:pa,advanceId:ty==='pic_expense'?F('fadv').value:'',claimId:clm,due:F('fdue').value,priority:F('fpri').value};
+if(editing){const ch=Object.keys(n).filter(k=>String(n[k])!==String(editing[k]||'')&&!(k==='paidAmount'&&!n[k]&&!editing[k])).map(k=>k==='status'?`status ${SL[editing.status]} → ${SL[n.status]}`:k==='amount'?`jumlah ${fmt(editing.amount)} → ${fmt(n.amount)}`:k);Object.assign(editing,n);log('Ubah',editing.id,desc+': '+(ch.join(', ')||'tanpa perubahan'))}
+else{const t={id:uid(),created:Date.now(),...n};db.tx.push(t);log('Tambah',t.id,`${desc}, ${fmt(amt)}, ${T[ty][0]}`)}
+save();$('dlg').close();render()});
+
+function dl(name,mime,txt){const a=h('a',{href:URL.createObjectURL(new Blob([txt],{type:mime})),download:name});document.body.append(a);a.click();a.remove()}
+function backup(){save();dl('workshop-spi-2026-backup-'+today()+'.json','application/json',JSON.stringify(db,null,1))}
+$('saveBtn').onclick=backup;
+function importJSON(e){const f=e.target.files[0];e.target.value='';if(!f)return;const r=new FileReader();r.onload=()=>{let o;try{o=JSON.parse(r.result)}catch(x){return alert('Berkas bukan JSON yang valid.')}const m=valid(o);if(m)return alert('Impor dibatalkan. '+m);
+if(!confirm(`Impor ${o.tx.length} transaksi? Seluruh data saat ini (${db.tx.length} transaksi) akan DIGANTI. Disarankan backup dulu.`))return;
+db=norm(o);log('Impor','',`${o.tx.length} transaksi dari ${f.name}`);save();render()};r.readAsText(f)}
+function csv(){const q=v=>{v=String(v??'');if(/^[=+\-@\t\r]/.test(v))v="'"+v;return '"'+v.replace(/"/g,'""')+'"'};
+const rows=[['Tanggal','Deskripsi','Kategori','PIC/Penerima','Jenis','Status','Jumlah','Dibayar','Referensi','Catatan'],...sorted(db.tx).map(t=>[t.date,t.desc,t.category,t.pic,T[t.type][0],SL[t.status],t.amount,paid(t),t.ref,t.notes])];
+dl('workshop-spi-2026-ledger-'+today()+'.csv','text/csv;charset=utf-8','\ufeff'+rows.map(r=>r.map(q).join(',')).join('\r\n'))}
+db=load();render();
+</script></body></html>
